@@ -20,6 +20,7 @@ func RejectionSampler(n int64, y []float64, generateParams ParamSampler, generat
 	var acceptedParams [][]float64
 	var params, x []float64
 	for i := int64(0); i < n; i++ {
+		// TODO : Create a go routine to parallelize
 		for {
 			// sample new parameters theta* from parameter generator
 			params = generateParams()
