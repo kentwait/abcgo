@@ -12,6 +12,7 @@ type Proposer interface {
 	Propose() float64
 	Prob(...float64) []float64
 	LogProb(...float64) []float64
+	UpdateMoments(...float64)
 }
 
 type NormalProposer struct {
@@ -57,6 +58,14 @@ func (n *NormalProposer) LogProb(values ...float64) []float64 {
 		res[i] = math.Log(n.Pdf(v))
 	}
 	return res
+}
+
+func (n *NormalProposer) UpdateMoments(moments ...float64) {
+	if len(moments) != 2 {
+		panic("Requires 2 values to update mu and sigma respectively")
+	}
+	n.Mu = moments[0]
+	n.Sigma = moments[1]
 }
 
 type Proposers []Proposer
