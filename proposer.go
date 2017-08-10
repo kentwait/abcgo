@@ -58,3 +58,13 @@ func (n *NormalProposer) LogProb(values ...float64) []float64 {
 	}
 	return res
 }
+
+type Proposers []Proposer
+
+func (p Proposers) Propose() []float64 {
+	params := make([]float64, len(p))
+	for i, proposer := range p {
+		params[i] = proposer.Propose()
+	}
+	return params
+}
