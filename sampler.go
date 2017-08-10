@@ -96,6 +96,7 @@ func MonteCarloSampler(n int, y []float64, epsilon float64) {
 			// accepted theta
 			theta = thetaF()
 
+<<<<<<< HEAD
 			// perturb the parameter distribution
 			// sample parameters from parameter generator using the previously
 			// accepted parameters as the means of the new distribution
@@ -105,6 +106,12 @@ func MonteCarloSampler(n int, y []float64, epsilon float64) {
 			// such that the number of observations in observed dataset y is the same
 			// as the number of observations in generated dataset x
 			x = generator(newTheta)
+=======
+			// generate new dataset X based on parameters theta
+			// such that the number of observations in observed dataset y is the same
+			// as the number of observations in generated dataset x
+			x = generator(theta)
+>>>>>>> 501182d06860809cc8e6c2ea04380bc02fe3c0b8
 
 			// calculate discrepancy between observed dataset y and new dataset x
 			// using some distance function
