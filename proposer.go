@@ -8,7 +8,7 @@ import (
 
 // Proposer generates parameter values randomly.
 type Proposer interface {
-	Moments() []float64
+	Moments(...string) []float64
 	Propose() float64
 	Prob(...float64) []float64
 	LogProb(...float64) []float64
@@ -17,6 +17,10 @@ type Proposer interface {
 
 type NormalProposer struct {
 	prob.Normal
+}
+
+func NewNormalProposer(mu, sigma float64) *NormalProposer {
+	return &NormalProposer{prob.Normal{mu, sigma}}
 }
 
 func (n *NormalProposer) Moments(names ...string) []float64 {
