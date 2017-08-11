@@ -92,7 +92,7 @@ func MCMCSamplerN(n int64, y []float64, tolerance float64, paramProposers Propos
 		if isNew {
 			priorParams = newParams
 			for i, param := range newParams {
-				paramProposers[i].UpdateMoments(param)
+				paramProposers[i].UpdateFields(param)
 			}
 		}
 	}
