@@ -1,13 +1,38 @@
 package abcgo
 
 import (
+	"bufio"
 	"bytes"
 	"os"
 	"strconv"
+	"strings"
 )
 
-func FromDelimited(path, delimiter string) [][]float64 {
+// FromDelimited reads a delimited text file into a float64 2D slice.
+func FromDelimited(path, delimiter string) (matrix [][]float64) {
+	f, err := os.Open("/tmp/dat")
+	if err != nil {
+		panic(err)
+	}
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
 
+	var delimitedLine []string
+	for scanner.Scan() {
+		line := scanner.Text()
+		delimitedLine = strings.Split(line, delimiter)
+
+		row := []float64{}
+		for _, s := range delimitedLine {
+			n, err := strconv.ParseFloat(s, 64)
+			if err != nil {
+				panic(err)
+			}
+			row = append(row, n)
+		}
+		matrix = append(matrix, row)
+	}
+	return
 }
 
 // ToDelimited writes a float64 2D slice to disk as a text file delimited
