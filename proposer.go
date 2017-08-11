@@ -101,89 +101,6 @@ func (n *NormalProposer) UpdateFields(values ...float64) {
 	}
 }
 
-// GammaProposer is a Proposer based on a gamma distribution with shape and
-// rate parameters.
-type GammaProposer struct {
-	prob.Gamma
-}
-
-// NewGammaProposer is a constructor that returns a pointer to
-// a new GammaProposer.
-func NewGammaProposer(shape, rate float64) *GammaProposer {
-	p, _ := prob.NewGamma(shape, rate)
-	return &GammaProposer{p}
-}
-
-// Moments returns the statistics of the shape of the gamma
-// probability density.
-func (n *GammaProposer) Moments(names ...string) []float64 {
-	var moments []float64
-	for _, name := range names {
-		switch name {
-		case "Mean":
-			moments = append(moments, n.Mean())
-		case "Variance":
-			moments = append(moments, n.Variance())
-		case "Skewness":
-			moments = append(moments, n.Skewness())
-		case "Kurtosis":
-			moments = append(moments, n.Kurtosis())
-		case "StdDev":
-			moments = append(moments, n.StdDev())
-		case "RelStdDev":
-			moments = append(moments, n.RelStdDev())
-		}
-	}
-	return moments
-}
-
-// Propose returns a random value from the initialized gamma probability density.
-func (n *GammaProposer) Propose() float64 {
-	return n.Random()
-}
-
-// Prob returns the probability of a value in the initialized gamma probability
-// density.
-func (n *GammaProposer) Prob(value float64) float64 {
-	return n.Pdf(value)
-}
-
-// Probs returns probabilities of one or more given values based on the
-// initialized gamma probability density.
-func (n *GammaProposer) Probs(values ...float64) []float64 {
-	res := make([]float64, len(values))
-	for i, v := range values {
-		res[i] = n.Pdf(v)
-	}
-	return res
-}
-
-// LogProb returns the log probability of a value in the initialized gamma
-// probability density.
-func (n *GammaProposer) LogProb(value float64) float64 {
-	return math.Log(n.Pdf(value))
-}
-
-// LogProbs returns the log probabilities of one or more given values based on
-// the initialized gamma probability density.
-func (n *GammaProposer) LogProbs(values ...float64) []float64 {
-	res := make([]float64, len(values))
-	for i, v := range values {
-		res[i] = math.Log(n.Pdf(v))
-	}
-	return res
-}
-
-// UpdateFields updates the mean, and standard deviation of the probability
-// density of the gamma probability density depending on the number
-// of values given. If only one value is given,
-func (n *GammaProposer) UpdateFields(values ...float64) {
-	n.Rate = values[0]
-	if len(values) == 2 {
-		n.Shape = values[1]
-	}
-}
-
 // ExponentialProposer is a Proposer based on a exponential distribution with
 // lambda parameter
 type ExponentialProposer struct {
@@ -346,6 +263,171 @@ func (n *LogNormalProposer) UpdateFields(values ...float64) {
 	n.Mu = values[0]
 	if len(values) == 2 {
 		n.Sigma = values[1]
+	}
+}
+
+// BetaProposer is a Proposer based on a beta distribution with alpha and
+// beta parameters.
+type BetaProposer struct {
+	prob.Beta
+}
+
+// NewBetaProposer is a constructor that returns a pointer to
+// a new BetaProposer.
+func NewBetaProposer(alpha, beta float64) *BetaProposer {
+	p, _ := prob.NewBeta(alpha, beta)
+	return &BetaProposer{p}
+}
+
+// Moments returns the statistics of the shape of the beta probability density.
+func (n *BetaProposer) Moments(names ...string) []float64 {
+	var moments []float64
+	for _, name := range names {
+		switch name {
+		case "Mean":
+			moments = append(moments, n.Mean())
+		case "Variance":
+			moments = append(moments, n.Variance())
+		case "Skewness":
+			moments = append(moments, n.Skewness())
+		case "Kurtosis":
+			moments = append(moments, n.Kurtosis())
+		case "StdDev":
+			moments = append(moments, n.StdDev())
+		case "RelStdDev":
+			moments = append(moments, n.RelStdDev())
+		}
+	}
+	return moments
+}
+
+// Propose returns a random value from the initialized beta probability density.
+func (n *BetaProposer) Propose() float64 {
+	return n.Random()
+}
+
+// Prob returns the probability of a value in the initialized beta probability
+// density.
+func (n *BetaProposer) Prob(value float64) float64 {
+	return n.Pdf(value)
+}
+
+// Probs returns probabilities of one or more given values based on the
+// initialized beta probability density.
+func (n *BetaProposer) Probs(values ...float64) []float64 {
+	res := make([]float64, len(values))
+	for i, v := range values {
+		res[i] = n.Pdf(v)
+	}
+	return res
+}
+
+// LogProb returns the log probability of a value in the initialized beta
+// probability density.
+func (n *BetaProposer) LogProb(value float64) float64 {
+	return math.Log(n.Pdf(value))
+}
+
+// LogProbs returns the log probabilities of one or more given values based on
+// the initialized beta probability density.
+func (n *BetaProposer) LogProbs(values ...float64) []float64 {
+	res := make([]float64, len(values))
+	for i, v := range values {
+		res[i] = math.Log(n.Pdf(v))
+	}
+	return res
+}
+
+// UpdateFields updates the mean, and standard deviation of the probability
+// density of the beta probability density depending on the number
+// of values given. If only one value is given,
+func (n *BetaProposer) UpdateFields(values ...float64) {
+	n.Alpha = values[0]
+	if len(values) == 2 {
+		n.Beta.Beta = values[1]
+	}
+}
+
+// GammaProposer is a Proposer based on a gamma distribution with shape and
+// rate parameters.
+type GammaProposer struct {
+	prob.Gamma
+}
+
+// NewGammaProposer is a constructor that returns a pointer to
+// a new GammaProposer.
+func NewGammaProposer(shape, rate float64) *GammaProposer {
+	p, _ := prob.NewGamma(shape, rate)
+	return &GammaProposer{p}
+}
+
+// Moments returns the statistics of the shape of the gamma
+// probability density.
+func (n *GammaProposer) Moments(names ...string) []float64 {
+	var moments []float64
+	for _, name := range names {
+		switch name {
+		case "Mean":
+			moments = append(moments, n.Mean())
+		case "Variance":
+			moments = append(moments, n.Variance())
+		case "Skewness":
+			moments = append(moments, n.Skewness())
+		case "Kurtosis":
+			moments = append(moments, n.Kurtosis())
+		case "StdDev":
+			moments = append(moments, n.StdDev())
+		case "RelStdDev":
+			moments = append(moments, n.RelStdDev())
+		}
+	}
+	return moments
+}
+
+// Propose returns a random value from the initialized gamma probability density.
+func (n *GammaProposer) Propose() float64 {
+	return n.Random()
+}
+
+// Prob returns the probability of a value in the initialized gamma probability
+// density.
+func (n *GammaProposer) Prob(value float64) float64 {
+	return n.Pdf(value)
+}
+
+// Probs returns probabilities of one or more given values based on the
+// initialized gamma probability density.
+func (n *GammaProposer) Probs(values ...float64) []float64 {
+	res := make([]float64, len(values))
+	for i, v := range values {
+		res[i] = n.Pdf(v)
+	}
+	return res
+}
+
+// LogProb returns the log probability of a value in the initialized gamma
+// probability density.
+func (n *GammaProposer) LogProb(value float64) float64 {
+	return math.Log(n.Pdf(value))
+}
+
+// LogProbs returns the log probabilities of one or more given values based on
+// the initialized gamma probability density.
+func (n *GammaProposer) LogProbs(values ...float64) []float64 {
+	res := make([]float64, len(values))
+	for i, v := range values {
+		res[i] = math.Log(n.Pdf(v))
+	}
+	return res
+}
+
+// UpdateFields updates the mean, and standard deviation of the probability
+// density of the gamma probability density depending on the number
+// of values given. If only one value is given,
+func (n *GammaProposer) UpdateFields(values ...float64) {
+	n.Rate = values[0]
+	if len(values) == 2 {
+		n.Shape = values[1]
 	}
 }
 
