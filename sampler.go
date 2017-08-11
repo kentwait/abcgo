@@ -1,6 +1,7 @@
 package abcgo
 
 import (
+	"math"
 	"math/rand"
 )
 
@@ -60,7 +61,7 @@ func MCMCSampler(priorParams, y []float64, tolerance float64, paramProposers *Pr
 	// TODO
 	q := randomWalker(priorParams, newParams)
 	pi := paramProposers.TotalProb(priorParams...) / paramProposers.TotalProb(newParams...)
-	h := pi * q
+	h := math.Min(float64(1), pi*q)
 
 	// Accept new parameters with probability h.
 	// Otherwise, stay at previous parameters and try again
