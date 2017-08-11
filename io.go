@@ -35,6 +35,16 @@ func FromDelimited(path, delimiter string) (matrix [][]float64) {
 	return
 }
 
+// FromTab reads a tab-delimited text file into a float64 2D slice.
+func FromTab(path string) (matrix [][]float64) {
+	return FromDelimited(path, "\t")
+}
+
+// FromCsv reads a CSV file into a float64 2D slice.
+func FromCsv(path string) (matrix [][]float64) {
+	return FromDelimited(path, ",")
+}
+
 // ToDelimited writes a float64 2D slice to disk as a text file delimited
 // by the given delimiter string.
 func ToDelimited(samples [][]float64, path, delimiter string) error {
