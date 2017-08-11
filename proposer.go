@@ -75,11 +75,10 @@ func (n *NormalProposer) LogProbs(values ...float64) []float64 {
 }
 
 func (n *NormalProposer) UpdateMoments(moments ...float64) {
-	if len(moments) != 2 {
-		panic("Requires 2 values to update mu and sigma respectively")
-	}
 	n.Mu = moments[0]
-	n.Sigma = moments[1]
+	if len(moments) == 2 {
+		n.Sigma = moments[1]
+	}
 }
 
 type Proposers []Proposer
