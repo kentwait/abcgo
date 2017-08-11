@@ -26,8 +26,8 @@ type NormalProposer struct {
 // NewNormalProposer is a constructor that returns a pointer to
 // a new NormalProposer.
 func NewNormalProposer(mu, sigma float64) *NormalProposer {
-	n, _ := prob.NewNormal(mu, sigma)
-	return &NormalProposer{n}
+	p, _ := prob.NewNormal(mu, sigma)
+	return &NormalProposer{p}
 }
 
 // Moments returns the statistics of the shape of the normal probability
@@ -110,8 +110,8 @@ type GammaProposer struct {
 // NewGammaProposer is a constructor that returns a pointer to
 // a new GammaProposer.
 func NewGammaProposer(shape, rate float64) *GammaProposer {
-	n, _ := prob.NewGamma(shape, rate)
-	return &GammaProposer{n}
+	p, _ := prob.NewGamma(shape, rate)
+	return &GammaProposer{p}
 }
 
 // Moments returns the statistics of the shape of the gamma
@@ -182,6 +182,87 @@ func (n *GammaProposer) UpdateFields(values ...float64) {
 	if len(values) == 2 {
 		n.Shape = values[1]
 	}
+}
+
+// ExponentialProposer is a Proposer based on a exponential distribution with
+// lambda parameter
+type ExponentialProposer struct {
+	prob.Exponential
+}
+
+// NewExpontialProposer is a constructor that returns a pointer to
+// a new ExponentialProposer.
+func NewExpontialProposer(lambda float64) *ExponentialProposer {
+	p, _ := prob.NewExponential(lambda)
+	return &ExponentialProposer{p}
+}
+
+// Moments returns the statistics of the shape of the exponential probability
+// density.
+func (n *ExponentialProposer) Moments(names ...string) []float64 {
+	var moments []float64
+	for _, name := range names {
+		switch name {
+		case "Mean":
+			moments = append(moments, n.Mean())
+		case "Variance":
+			moments = append(moments, n.Variance())
+		case "Skewness":
+			moments = append(moments, n.Skewness())
+		case "Kurtosis":
+			moments = append(moments, n.Kurtosis())
+		case "StdDev":
+			moments = append(moments, n.StdDev())
+		case "RelStdDev":
+			moments = append(moments, n.RelStdDev())
+		}
+	}
+	return moments
+}
+
+// Propose returns a random value from the initialized exponential probability
+// density.
+func (n *ExponentialProposer) Propose() float64 {
+	return n.Random()
+}
+
+// Prob returns the probability of a value in the initialized exponential
+// probability density.
+func (n *ExponentialProposer) Prob(value float64) float64 {
+	return n.Pdf(value)
+}
+
+// Probs returns probabilities of one or more given values based on the
+// initialized exponential probability density.
+func (n *ExponentialProposer) Probs(values ...float64) []float64 {
+	res := make([]float64, len(values))
+	for i, v := range values {
+		res[i] = n.Pdf(v)
+	}
+	return res
+}
+
+// LogProb returns the log probability of a value in the initialized exponential
+// probability density.
+func (n *ExponentialProposer) LogProb(value float64) float64 {
+	return math.Log(n.Pdf(value))
+}
+
+// LogProbs returns the log probabilities of one or more given values based on
+// the initialized exponential probability density.
+func (n *ExponentialProposer) LogProbs(values ...float64) []float64 {
+	res := make([]float64, len(values))
+	for i, v := range values {
+		res[i] = math.Log(n.Pdf(v))
+	}
+	return res
+}
+
+// UpdateFields updates the mean and standard deviation of
+// the probability density of the exponential distribution depending on the number
+// of values given.
+func (n *ExponentialProposer) UpdateFields(values ...float64) {
+	n.Lambda = values[0]
 }
 
 // Proposers is a list of Proposer types to accomodate proposing new
