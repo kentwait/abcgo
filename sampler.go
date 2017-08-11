@@ -13,69 +13,85 @@ type Generator func(...float64) []float64
 // uniformly. Proposed parameters are accepted or rejected based on a
 // similarity metric computed between the observed data and the simulated
 // data generated using the parameters.
-func RejectionSampler(y []float64, tolerance float64, generateParams Proposers, generateDataF Generator, acceptParams Filter) (acceptedParams []float64) {
-	var params, x []float64
+func RejectionSampler(y []float64, tolerance float64, paramProposers *Proposers, dataGenerator Generator, paramFilterer Filter) []float64 {
 	// sample new parameters from parameter generator
-	params = generateParams.Propose()
+	params := paramProposers.Propose()
 
 	// generate new data x based on parameters
-	x = generateDataF(params...)
+	x := dataGenerator(params...)
 
-	if acceptParams(y, x, tolerance) == false {
+	if paramFilterer(y, x, tolerance) == false {
 		// store theta if within tolerance
-		acceptedParams = nil
+		return nil
 	}
-	acceptedParams = params
-
-	return
+	return params
 }
 
 // RejectionSamplerN performs ABC rejection sampling over n number of rounds.
 func RejectionSamplerN(n int64, y []float64, tolerance float64,
-	generateParams Proposers, generateDataF Generator, acceptParamsF Filter) (acceptedParams [][]float64) {
+	paramProposers Proposers, dataGenerator Generator, paramFilterer Filter) (acceptedParams [][]float64) {
 	// n is number of trials
 
 	for t := int64(0); t < n; t++ {
-		p := RejectionSampler(y, tolerance, generateParams, generateDataF, acceptParamsF)
+		p := RejectionSampler(y, tolerance, &paramProposers, dataGenerator, paramFilterer)
 		acceptedParams = append(acceptedParams, p)
 	}
 	return
 }
 
-type MCMCProposer func(...[]float64) []float64
+type RandomWalker func([]float64, []float64) float64
 
-// MCMCSampler implements the ABC Markov chain Monte Carlo algorithm.
+func MCMCSampler(priorParams, y []float64, tolerance float64, paramProposers *Proposers, dataGenerator Generator, paramFilterer Filter, randomWalker RandomWalker) ([]float64, bool) {
+	// propose new parameters from parameter generator based on the
+	// previous accepted parameter
+	newParams := paramProposers.Propose()
+
+	// generate new data x based on parameters
+	x := dataGenerator(newParams...)
+
+	// Test whether generated data is close enough to the observed
+	// data. If not, stay at previous parameters and try again
+	if paramFilterer(y, x, tolerance) == false {
+		// store theta if within tolerance
+		return priorParams, false
+
+	}
+	// Calculate acceptance probability h
+	// TODO
+	q := randomWalker(priorParams, newParams)
+	pi := paramProposers.TotalProb(priorParams...) / paramProposers.TotalProb(newParams...)
+	h := pi * q
+
+	// Accept new parameters with probability h.
+	// Otherwise, stay at previous parameters and try again
+	if h <= rand.Float64() {
+		return newParams, true
+	}
+	return priorParams, false
+}
+
+// MCMCSamplerN implements the ABC Markov chain Monte Carlo algorithm.
 // In this method, new parameters are proposed by random walk exploring the
 // neighborhood of the last accepted parameter.
-func MCMCSampler(n int64, y, params []float64, tolerance float64,
-	generateParams Proposers, generateData Generator, acceptParams Filter) (acceptedParams, acceptedX [][]float64) {
-	var x, newParams []float64
-	var h float64
+func MCMCSamplerN(n int64, y []float64, tolerance float64, paramProposers Proposers, dataGenerator Generator, paramFilterer Filter, randomWalker RandomWalker) (acceptedParams [][]float64) {
+	var priorParams, newParams []float64
+	isNew := false
+	for {
+		priorParams = RejectionSampler(y, tolerance, &paramProposers, dataGenerator, paramFilterer)
+
+		if priorParams != nil {
+			break
+		}
+	}
+
 	for i := int64(0); i < n; i++ {
-		for {
-			// propose new parameters from parameter generator based on the
-			// previous accepted parameter
-			newParams = generateParams.Propose()
+		newParams, isNew = MCMCSampler(priorParams, y, tolerance, &paramProposers, dataGenerator, paramFilterer, randomWalker)
+		acceptedParams = append(acceptedParams, newParams)
 
-			// generate new data x based on parameters
-			x = generateData(params...)
-
-			// Test whether generated data is close enough to the observed
-			// data. If not, stay at previous parameters and try again
-			if acceptParams(y, x, tolerance) == false {
-				continue
-			}
-			// Calculate acceptance probability h
-			// TODO
-			h = float64(0)
-
-			// Accept new parameters with probability h.
-			// Otherwise, stay at previous parameters and try again
-			if h <= rand.Float64() {
-				acceptedParams = append(acceptedParams, newParams)
-				acceptedX = append(acceptedX, x)
-
-				params = newParams
+		if isNew {
+			priorParams = newParams
+			for i, param := range newParams {
+				paramProposers[i].UpdateMoments(param)
 			}
 		}
 	}
