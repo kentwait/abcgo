@@ -10,8 +10,10 @@ import (
 type Proposer interface {
 	Moments(...string) []float64
 	Propose() float64
-	Prob(...float64) []float64
-	LogProb(...float64) []float64
+	Prob(float64) float64
+	LogProb(float64) float64
+	Probs(...float64) []float64
+	LogProbs(...float64) []float64
 	UpdateMoments(...float64)
 }
 
@@ -48,7 +50,11 @@ func (n *NormalProposer) Propose() float64 {
 	return n.Random()
 }
 
-func (n *NormalProposer) Prob(values ...float64) []float64 {
+func (n *NormalProposer) Prob(value float64) float64 {
+	return n.Pdf(value)
+}
+
+func (n *NormalProposer) Probs(values ...float64) []float64 {
 	res := make([]float64, len(values))
 	for i, v := range values {
 		res[i] = n.Pdf(v)
@@ -56,7 +62,11 @@ func (n *NormalProposer) Prob(values ...float64) []float64 {
 	return res
 }
 
-func (n *NormalProposer) LogProb(values ...float64) []float64 {
+func (n *NormalProposer) LogProb(value float64) float64 {
+	return math.Log(n.Pdf(value))
+}
+
+func (n *NormalProposer) LogProbs(values ...float64) []float64 {
 	res := make([]float64, len(values))
 	for i, v := range values {
 		res[i] = math.Log(n.Pdf(v))
@@ -80,4 +90,36 @@ func (p Proposers) Propose() []float64 {
 		params[i] = proposer.Propose()
 	}
 	return params
+}
+
+func (p Proposers) Probs(values ...float64) []float64 {
+	probs := make([]float64, len(values))
+	for i, v := range values {
+		probs[i] = p[i].Prob(v)
+	}
+	return probs
+}
+
+func (p Proposers) LogProbs(values ...float64) []float64 {
+	probs := make([]float64, len(values))
+	for i, v := range values {
+		probs[i] = p[i].LogProb(v)
+	}
+	return probs
+}
+
+func (p Proposers) TotalProb(values ...float64) float64 {
+	prob := float64(1)
+	for i, v := range values {
+		prob *= p[i].Prob(v)
+	}
+	return prob
+}
+
+func (p Proposers) TotalLogProb(values ...float64) float64 {
+	prob := float64(0)
+	for i, v := range values {
+		prob += p[i].LogProb(v)
+	}
+	return prob
 }
